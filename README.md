@@ -1,5 +1,29 @@
 # About this repo
 
+## 修改说明
+
+主要为 小米12X 启用容器化支持，代号 psyche 。
+
+优化与增加：
+
+1. 移除源码中嵌入的 SkiSU, 改为脚本补丁形式。
+2. build.sh 编译流程优化，由原有 AOSP/MIUI 串行编译改为单次编译，默认编译 MIUI 版本，编译时间减半。
+3. build.sh 中增加对 LXC/Docker 容器支持，默认启用，可删除代码块后编译。
+4. 修改 Kernel/Makefile，改变 config_data.gz 打包逻辑，增加对 Docker check-config.sh 检测脚本支持。
+5. SkiSU 与 Susfs4ksu 改为内核 4.19 支持的最后版本，补丁文件名后缀为 commit id，支持 SkiSU 4.0 客户端，Susfs 1.5.8 版本。
+
+问题与打包方式变更：
+1. 已知 KPM 内核补丁在 12X(psyche) 上无效。
+2. 请使用 `git clone --depth=1` 进行源码下载。
+
+    因移除了内核源码中的 SkiSU Patch，build.sh 每次打包会应用新的 Patch 补丁，仓库需要以`git clone --depth=1 https://github.com/Anr-C/kernel_xiaomi_sm8250_mod.git` 方式下载。
+
+3. 修改后请进行本地 commit 提交。
+
+    因不再是单次双版本打包，为了 SkiSU 补丁修改、内核版本号字符串、上次编译生成文件等不影响本地多次打包，在 build.sh 每次运行都进行了:`git reset --hard HEAD && git clean -fd` 以保持仓库干净。该行为将导致本地所有未 commit 的修改丢失。若存在修改，修改后必须临时 commit 避免丢失，如果丢失，可尝试通过 vscode 等工具的 localhistory 进行找回。
+
+其他保持不变，维持原味干净的：[liyafe1997/kernel_xiaomi_sm8250_mod](https://github.com/liyafe1997/kernel_xiaomi_sm8250_mod)
+
 [中文](#中文)
 
 ## English
@@ -124,26 +148,36 @@ Release里的编译好的内核成品由`android15-lineage22-mod`分支编译，
 
 3. Build
 
-    Build without KernelSU: 
+    Build without SkiSU: 
     ```
     bash build.sh TARGET_DEVICE
     ```
     
-    Build with KernelSU:
+    Build with SkiSU:
     ```
     bash build.sh TARGET_DEVICE ksu
     ```
 
-    For example, build for lmi (Redmi K30 Pro/POCO F2 Pro) without KernelSU:
+    Build for MIUI (defult): 
+
+    For example, build for psyche (Mi 12X) without KernelSU:
     ```
-    bash build.sh lmi
+    bash build.sh psyche
     ````
 
-    For example, build for umi (Mi 10) with KernelSU:
+    For example, build for psyche (Mi 12X) with SkiSU:
     ```
-    bash build.sh umi ksu
+    bash build.sh psyche ksu
     ```
 
-    And also, here is a `buildall.sh` can build for all supported models at once.
+    Build for AOSP:
 
+    For example, build for psyche (Mi 12X) without SkiSU:
+    ```
+    bash build.sh psyche aosp
+    ````
 
+    For example, build for psyche (Mi 12X) with KernelSU:
+    ```
+    bash build.sh psyche ksu aosp
+    ```
